@@ -1,7 +1,7 @@
 const config = require('../config');
-const { readFileSync } = require('fs');
 const { GoogleAuth } = require('google-auth-library');
 const winston = require('winston');
+const { readFileSync } = require('fs');
 
 // Configuração do logger com winston
 const logger = winston.createLogger({
@@ -32,8 +32,16 @@ exports.validate = async (token) => {
 
   // Integração real
   try {
-    const keyPath = config.googleServiceAccountKeyPath;
-    const key = JSON.parse(readFileSync(keyPath, 'utf8'));
+    let key;
+    if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY_JSON) {
+      // Vercel: lê da variável de ambiente
+      key = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY_JSON);
+    } else if (config.googleServiceAccountKeyPath) {
+      // Local: lê do arquivo
+      key = JSON.parse(readFileSync(config.googleServiceAccountKeyPath, 'utf8'));
+    } else {
+      throw new Error('Nenhuma chave de conta de serviço encontrada');
+    }
     const auth = new GoogleAuth({
       credentials: key,
       scopes: ['https://www.googleapis.com/auth/playintegrity']
