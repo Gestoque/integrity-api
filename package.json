@@ -1,0 +1,22 @@
+{
+  "name": "integrity-api",
+  "version": "1.0.0",
+  "description": "Node.js REST API for Play Integrity token validation (SaaS, Clean Code, Azure)",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "jest"
+  },
+  "keywords": ["play-integrity", "nodejs", "azure", "saas", "clean-code"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "dotenv": "^16.0.3",
+    "winston": "^3.8.2"
+  },
+  "devDependencies": {
+    "jest": "^29.6.2",
+    "supertest": "^6.3.3"
+  }
+}
