@@ -34,10 +34,13 @@ exports.validate = async (token) => {
   try {
     let key;
     if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY_JSON) {
-      // Vercel: lê da variável de ambiente
-      key = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY_JSON);
+      try {
+        key = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY_JSON);
+      } catch (parseError) {
+        logger.error('Erro ao fazer parse da variável GOOGLE_SERVICE_ACCOUNT_KEY_JSON: ' + parseError.message);
+        throw new Error('Formato inválido da chave JSON');
+      }
     } else if (config.googleServiceAccountKeyPath) {
-      // Local: lê do arquivo
       key = JSON.parse(readFileSync(config.googleServiceAccountKeyPath, 'utf8'));
     } else {
       throw new Error('Nenhuma chave de conta de serviço encontrada');
