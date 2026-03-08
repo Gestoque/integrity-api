@@ -21,12 +21,13 @@ const limiter = rateLimit({
   max: 30,
   standardHeaders: true,
   legacyHeaders: false,
-  message: {
-    allowed: false,
-    reason: 'Muitas requisições. Tente novamente em instantes.',
-    requestId: null,
-    timestamp: new Date().toISOString(),
-    verdicts: {}
+  handler: (req, res) => {
+    res.status(429).json({
+      code: 'RATE_LIMITED',
+      message: 'Muitas requisições. Tente novamente em instantes.',
+      requestId: null,
+      timestamp: new Date().toISOString(),
+    });
   }
 });
 app.use('/validate-integrity-token', limiter);
@@ -47,11 +48,10 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use((err, req, res, next) => {
   logger.error(`Erro não tratado: ${err.message}`);
   res.status(500).json({
-    allowed: false,
-    reason: 'Erro interno do servidor',
+    code: 'INTERNAL_ERROR',
+    message: 'Erro interno do servidor',
     requestId: null,
     timestamp: new Date().toISOString(),
-    verdicts: {}
   });
 });
 

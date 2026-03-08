@@ -128,7 +128,7 @@ exports.validate = async (body) => {
   const emptyVerdicts = { appRecognitionVerdict: 'UNEVALUATED', deviceRecognitionVerdict: [], appLicensingVerdict: 'UNEVALUATED' };
 
   // Mock para testes locais
-  if (integrityToken === 'valid-token') {
+  if (integrityToken === 'valid-mock-token-testing') {
     logger.info(`[${requestId}] mock | action=${action} enforcement=${enforcement}`);
     const nonceResult = nonce ? checkAndRegister(nonce) : { valid: true, replayDetected: false, expiresAt: null };
     const mockVerdicts = {
