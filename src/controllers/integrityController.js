@@ -3,16 +3,20 @@ const logger = require('../utils/logger');
 
 exports.validateToken = async (req, res) => {
   try {
-    const { token } = req.body;
-    if (!token) {
-      logger.warn('Token não fornecido');
-      return res.status(400).json({ status: 'inválido', detalhes: 'Token não fornecido' });
-    }
-    const resultado = await playIntegrityService.validate(token);
-    logger.info(`Resultado da validação: ${JSON.stringify(resultado)}`);
-    res.status(200).json(resultado);
+    const resultado = await playIntegrityService.validate(req.body);
+    const status = resultado.allowed ? 200 : 403;
+    logger.info(
+      `[${resultado.requestId}] HTTP ${status} | allowed=${resultado.allowed} | reason=${resultado.reason}`
+    );
+    res.status(status).json(resultado);
   } catch (error) {
-    logger.error(`Erro na validação: ${error.message}`);
-    res.status(500).json({ status: 'inválido', detalhes: 'Erro interno do servidor' });
+    logger.error(`Erro inesperado na validação: ${error.message}`);
+    res.status(500).json({
+      allowed: false,
+      reason: 'Erro interno do servidor',
+      requestId: null,
+      timestamp: new Date().toISOString(),
+      verdicts: {}
+    });
   }
 };
