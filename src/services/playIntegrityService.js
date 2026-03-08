@@ -51,17 +51,15 @@ exports.validate = async (token) => {
     });
     const client = await auth.getClient();
 
-    // Exemplo de chamada real (substitua pelo endpoint correto)
-    // const res = await client.request({
-    //   url: 'https://playintegrity.googleapis.com/v1/your-endpoint',
-    //   method: 'POST',
-    //   data: { integrityToken: token }
-    // });
-    // logger.info(`Resultado da validação: ${JSON.stringify(res.data)}`);
-    // return res.data;
-
-    logger.info('Validação real não implementada.');
-    return { status: 'inválido', detalhes: 'Validação real não implementada.' };
+    // Chamada real à API Play Integrity
+    const packageName = 'br.com.gestoque.app.gcollector';
+    const res = await client.request({
+      url: `https://playintegrity.googleapis.com/v1/${packageName}:decodeIntegrityToken`,
+      method: 'POST',
+      data: { integrityToken: token }
+    });
+    logger.info(`Resultado da validação: ${JSON.stringify(res.data)}`);
+    return res.data;
   } catch (error) {
     logger.error('Erro ao validar token: ' + error.message);
     return { status: 'inválido', detalhes: 'Erro ao validar token: ' + error.message };
