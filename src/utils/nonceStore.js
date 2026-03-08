@@ -1,16 +1,16 @@
 /**
  * Store in-memory de nonces com TTL para anti-replay.
  * Em produção, substitua por Redis ou banco com expiração.
- * TTL: 3 minutos (180.000ms)
+ * TTL: 5 minutos (300.000ms)
  */
-const NONCE_TTL_MS = 3 * 60 * 1000;
-const store = new Map();
+const NONCE_TTL_MS = 5 * 60 * 1000;
+const store = new Map(); // nonce -> { registeredAt, expiresAt }
 
 // Limpeza periódica de nonces expirados
 setInterval(() => {
   const now = Date.now();
-  for (const [nonce, ts] of store.entries()) {
-    if (now - ts > NONCE_TTL_MS) store.delete(nonce);
+  for (const [nonce, entry] of store.entries()) {
+    if (now > entry.expiresAt) store.delete(nonce);
   }
 }, 60 * 1000);
 
@@ -18,23 +18,29 @@ setInterval(() => {
  * Verifica se o nonce é válido (não reutilizado e não expirado).
  * Registra o nonce ao validar.
  * @param {string} nonce
- * @returns {{ valid: boolean, reason?: string }}
+ * @returns {{ valid: boolean, replayDetected: boolean, reason?: string, expiresAt?: string }}
  */
 function checkAndRegister(nonce) {
   if (!nonce || typeof nonce !== 'string' || nonce.length < 8) {
-    return { valid: false, reason: 'Nonce ausente ou muito curto' };
+    return { valid: false, replayDetected: false, reason: 'nonce_expired' };
   }
   const now = Date.now();
   if (store.has(nonce)) {
-    const ts = store.get(nonce);
-    if (now - ts <= NONCE_TTL_MS) {
-      return { valid: false, reason: 'Nonce reutilizado (replay detectado)' };
-    }
-    // Expirou e está sendo reutilizado após janela — rejeita por segurança
-    return { valid: false, reason: 'Nonce reutilizado' };
+    const entry = store.get(nonce);
+    return {
+      valid: false,
+      replayDetected: true,
+      reason: 'nonce_replay',
+      expiresAt: new Date(entry.expiresAt).toISOString()
+    };
   }
-  store.set(nonce, now);
-  return { valid: true };
+  const expiresAt = now + NONCE_TTL_MS;
+  store.set(nonce, { registeredAt: now, expiresAt });
+  return {
+    valid: true,
+    replayDetected: false,
+    expiresAt: new Date(expiresAt).toISOString()
+  };
 }
 
-module.exports = { checkAndRegister };
+module.exports = { checkAndRegister, NONCE_TTL_MS };
