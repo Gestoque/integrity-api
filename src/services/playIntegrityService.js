@@ -120,6 +120,9 @@ function buildResponse({ requestId, action, enforcement, allowed, reason, verdic
 
 // ─── Main Validate ────────────────────────────────────────────────────────────
 
+exports.evaluateRisk = evaluateRisk;
+exports.applyPolicy = applyPolicy;
+
 exports.validate = async (body) => {
   const requestId = randomUUID();
   const integrityToken = body.integrityToken || body.token;
